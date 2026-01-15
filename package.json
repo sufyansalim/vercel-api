@@ -3,11 +3,13 @@
   "version": "1.0.0",
   "description": "Dokkani.co API - Stripe Checkout & Sanity Orders",
   "private": true,
+  "type": "module",
   "engines": {
     "node": ">=18"
   },
   "dependencies": {
     "@sanity/client": "^6.15.0",
+    "micro": "^10.0.1",
     "stripe": "^14.14.0"
   }
 }

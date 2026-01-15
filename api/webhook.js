@@ -4,19 +4,9 @@
  * Endpoint: POST /api/webhook
  */
 
-const Stripe = require('stripe');
-const { createClient } = require('@sanity/client');
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
-
-// Initialize Sanity client
-const sanityClient = createClient({
-  projectId: process.env.SANITY_PROJECT_ID,
-  dataset: process.env.SANITY_DATASET || 'production',
-  apiVersion: '2024-01-01',
-  token: process.env.SANITY_TOKEN,
-  useCdn: false,
-});
+import Stripe from 'stripe';
+import { createClient } from '@sanity/client';
+import { buffer } from 'micro';
 
 // Disable body parsing - we need raw body for webhook verification
 export const config = {
@@ -25,28 +15,28 @@ export const config = {
   },
 };
 
-// Helper to get raw body
-async function getRawBody(req) {
-  const chunks = [];
-  for await (const chunk of req) {
-    chunks.push(typeof chunk === 'string' ? Buffer.from(chunk) : chunk);
-  }
-  return Buffer.concat(chunks);
-}
-
-module.exports = async (req, res) => {
+export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
+
+  // Initialize inside handler to ensure env vars are loaded
+  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+  const sanityClient = createClient({
+    projectId: process.env.SANITY_PROJECT_ID,
+    dataset: process.env.SANITY_DATASET || 'production',
+    apiVersion: '2024-01-01',
+    token: process.env.SANITY_TOKEN,
+    useCdn: false,
+  });
 
   const sig = req.headers['stripe-signature'];
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
   let event;
-  let rawBody;
 
   try {
-    rawBody = await getRawBody(req);
+    const rawBody = await buffer(req);
     event = stripe.webhooks.constructEvent(rawBody, sig, webhookSecret);
   } catch (err) {
     console.error('Webhook signature verification failed:', err.message);
@@ -108,4 +98,4 @@ module.exports = async (req, res) => {
   }
 
   res.status(200).json({ received: true });
-};
+}

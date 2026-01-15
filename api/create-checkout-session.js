@@ -4,8 +4,7 @@
  * Endpoint: POST /api/create-checkout-session
  */
 
-const Stripe = require('stripe');
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+import Stripe from 'stripe';
 
 // Helper function to parse price from various formats
 const parsePrice = (price) => {
@@ -16,9 +15,12 @@ const parsePrice = (price) => {
   return 0;
 };
 
-module.exports = async (req, res) => {
+export default async function handler(req, res) {
+  // Initialize Stripe inside handler to ensure env vars are loaded
+  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+  
   // Set CORS headers
-  res.setHeader('Access-Control-Allow-Credentials', true);
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
@@ -121,4 +123,4 @@ module.exports = async (req, res) => {
     console.error('Error creating checkout session:', error);
     res.status(500).json({ error: error.message });
   }
-};
+}

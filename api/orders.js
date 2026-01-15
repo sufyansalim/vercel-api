@@ -4,20 +4,11 @@
  * Endpoint: GET /api/orders?userId=xxx
  */
 
-const { createClient } = require('@sanity/client');
+import { createClient } from '@sanity/client';
 
-// Initialize Sanity client
-const sanityClient = createClient({
-  projectId: process.env.SANITY_PROJECT_ID,
-  dataset: process.env.SANITY_DATASET || 'production',
-  apiVersion: '2024-01-01',
-  token: process.env.SANITY_TOKEN,
-  useCdn: false,
-});
-
-module.exports = async (req, res) => {
+export default async function handler(req, res) {
   // Set CORS headers
-  res.setHeader('Access-Control-Allow-Credentials', true);
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
@@ -36,6 +27,15 @@ module.exports = async (req, res) => {
   if (!userId) {
     return res.status(400).json({ error: 'userId is required' });
   }
+
+  // Initialize Sanity client inside handler
+  const sanityClient = createClient({
+    projectId: process.env.SANITY_PROJECT_ID,
+    dataset: process.env.SANITY_DATASET || 'production',
+    apiVersion: '2024-01-01',
+    token: process.env.SANITY_TOKEN,
+    useCdn: false,
+  });
 
   try {
     const orders = await sanityClient.fetch(
@@ -57,4 +57,4 @@ module.exports = async (req, res) => {
     console.error('Error fetching orders:', error);
     res.status(500).json({ error: error.message });
   }
-};
+}
