@@ -1,0 +1,13 @@
+{
+  "name": "dokkani-api",
+  "version": "1.0.0",
+  "description": "Dokkani.co API - Stripe Checkout & Sanity Orders",
+  "private": true,
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@sanity/client": "^6.15.0",
+    "stripe": "^14.14.0"
+  }
+}
